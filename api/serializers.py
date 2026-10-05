@@ -18,9 +18,9 @@ class RegistrationSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=100, write_only=True)
 
     def validate(self, data):
-       if Student.objects.filter(username=data['username']).exists():
+       if User.objects.filter(username=data['username']).exists():
            raise serializers.ValidationError("Username already exists")
-       if Student.objects.filter(email=data['email']).exists():
+       if User.objects.filter(email=data['email']).exists():
            raise serializers.ValidationError("Email already exists")
        return data
    
@@ -32,3 +32,9 @@ class RegistrationSerializer(serializers.Serializer):
        user.set_password(validated_data['password'])
        user.save()
        return user
+
+# for Login
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()  

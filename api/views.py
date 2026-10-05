@@ -1,10 +1,13 @@
+from django.shortcuts import render
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Student
-from .serializers import RegistrationSerializer, StudentSerializer
+from .serializers import LoginSerializer, RegistrationSerializer, StudentSerializer
 from rest_framework.views import APIView
 from rest_framework import status
-
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
 
 @api_view(["GET"])
 def item_list(request):
@@ -120,4 +123,27 @@ class RegisterAPI(APIView):
         return Response(
             {"status": True, "message": "Registration successful"},
             status=status.HTTP_201_CREATED,
+        )
+
+# for login view
+class LoginAPI(APIView):
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                {"status": False, "message": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        username = serializer.validated_data["username"]
+        password = serializer.validated_data["password"]
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return Response(
+                {"status": False, "message": "Invalid username or password"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response(
+            {"status": True, "message": "Login successful", "token": token.key},
+            status=status.HTTP_200_OK,
         )
